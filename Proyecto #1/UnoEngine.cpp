@@ -124,16 +124,12 @@ void startGame() {
 	takeCard.setColor(Color(255, 218, 0, 255));
 	game.draw(takeCard);
 
-	for (int i = 0; i < 12; i++) { //temporal
+	for (int i = 0; i < 12; i++) {
 		printCard(playerOneDeck.getCardDeck(i), card, bottomPositions[i], 570);
-		//card.setPosition(bottomPositions[i], 570);
-		//game.draw(card);
 	}
 
-	for (int i = 0; i < 12; i++) { //temporal
+	for (int i = 0; i < 12; i++) {
 		printCard(playerTwoDeck.getCardDeck(i), card, topPositions[i], 30);
-		//card.setPosition(topPositions[i],30);
-		//game.draw(card);
 	}
 
 	game.display();
