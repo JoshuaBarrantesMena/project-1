@@ -101,6 +101,19 @@ UnoCard CardsDeck::getCardDeck(int cardPos) {
 	return deck[cardPos];
 }
 
+int CardsDeck::getTotalCards() {
+
+	int iterDeck, totalCards = 0;
+
+	for (iterDeck = 0; iterDeck < size; iterDeck++) {
+
+		if (deck[iterDeck].getType() != 'v') {
+			totalCards++;
+		}
+	}
+	return totalCards;
+}
+
 void CardsDeck::print() {
 
 	for (int i = 0; i < size; i++) {

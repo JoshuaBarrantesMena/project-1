@@ -6,7 +6,7 @@ class CardsDeck { //mazo para juego: mazo para jugadores
 private:
 
 	int size;
-	UnoCard* deck; //dinamico
+	UnoCard* deck;
 
 public:
 	CardsDeck();
@@ -17,6 +17,7 @@ public:
 	void setCardDeck(UnoCard, int);
 	void setCardInUse(int, bool);
 	UnoCard getCardDeck(int);
+	int getTotalCards();
 
 
 	void print();
