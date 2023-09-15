@@ -5,10 +5,12 @@ using namespace std;
 using namespace sf;
 
 RenderWindow game(VideoMode(1280, 720), "UNO!");
-Texture backgroundFile, buttonFile, cardFile, cardOutlineFile;
+Texture backgroundFile, buttonFile, cardFile;
+Texture cardOutlineFile, cardChangeColorFile, cardNoTurnFile, cardReverseFile;
 Font letterFont;
 Vector2i mousePos;
 Event gameLoop;
+CardsDeck gameDeck(108), playerOneDeck(12), playerTwoDeck(12);
 UnoCard globalCard;
 
 void startMenu() {
@@ -19,6 +21,10 @@ void startMenu() {
 		backgroundFile.loadFromFile("Textures/Background.jpg");
 		buttonFile.loadFromFile("Textures/Button.png");
 		letterFont.loadFromFile("Fonts/Cabin-Bold.ttf");
+		cardChangeColorFile.loadFromFile("Textures/UnocardChangeColor.png");
+		cardNoTurnFile.loadFromFile("Textures/UnocardNoTurn.png");
+		cardReverseFile.loadFromFile("textures/UnocardReverse.png");
+
 		Sprite background(backgroundFile), button(buttonFile);
 
 		Text menuText("¡JUEGA UNO EN C++!", letterFont, 90), buttonText("Empezar", letterFont, 60);
@@ -72,8 +78,6 @@ void startMenu() {
 }
 
 void startGame() {
-
-	CardsDeck gameDeck(108), playerOneDeck(12), playerTwoDeck(12);
 
 	int bottomXPositions[12] = {556, 644, 468, 732, 380, 820, 292, 908, 204, 996, 116, 1084};
 	int topXPositions[12] = {644, 556, 732, 468, 820, 380, 908, 292, 996, 204, 1084, 116};
@@ -194,18 +198,20 @@ bool mouseDetect(Vector2i mousePos, Vector2f topPos, Vector2f bottomPos) {
 
 void printCard(UnoCard actualCard, Sprite cardSprite, Sprite cardOutlineSprite, int xPos, int yPos) {
 
-	string cardCharacter;
+	string cardCharacter = " ";
+	Sprite changeColor(cardChangeColorFile), noTurn(cardNoTurnFile), reverse(cardReverseFile);
 	int auxX = 0;
+	bool isChangeColor = false;
+	bool isReverse = false;
+	bool isNoTurn = false;
 
 	switch (actualCard.getType()) {
 
 	case 's':
-		cardCharacter = "X";
-		auxX = 6;
+		isReverse = true;
 		break;
 	case 'r':
-		cardCharacter = "//";
-		auxX = 3;
+		isNoTurn = true;
 		break;
 	case '2':
 		cardCharacter = "+2";
@@ -216,7 +222,7 @@ void printCard(UnoCard actualCard, Sprite cardSprite, Sprite cardOutlineSprite, 
 		auxX = -8;
 		break;
 	case 'c':
-		cardCharacter = "%";
+		isChangeColor = true;
 		break;
 	case 'n':
 		cardCharacter = to_string(actualCard.getNumber());
@@ -235,18 +241,26 @@ void printCard(UnoCard actualCard, Sprite cardSprite, Sprite cardOutlineSprite, 
 	case 'B':
 		cardText.setColor(Color::Blue);
 		cardOutlineSprite.setColor(Color::Blue);
+		reverse.setColor(Color::Blue);
+		noTurn.setColor(Color::Blue);
 		break;
 	case 'G':
 		cardText.setColor(Color::Green);
 		cardOutlineSprite.setColor(Color::Green);
+		reverse.setColor(Color::Green);
+		noTurn.setColor(Color::Green);
 		break;
 	case 'R':
 		cardText.setColor(Color::Red);
 		cardOutlineSprite.setColor(Color::Red);
+		reverse.setColor(Color::Red);
+		noTurn.setColor(Color::Red);
 		break;
 	case 'Y':
 		cardText.setColor(Color::Yellow);
 		cardOutlineSprite.setColor(Color::Yellow);
+		reverse.setColor(Color::Yellow);
+		noTurn.setColor(Color::Yellow);
 		break;
 	case 'N':
 		cardText.setColor(Color::Black);
@@ -260,6 +274,22 @@ void printCard(UnoCard actualCard, Sprite cardSprite, Sprite cardOutlineSprite, 
 		game.draw(cardSprite);
 		game.draw(cardOutlineSprite);
 	}
+	if (isChangeColor) {
+		changeColor.setPosition(xPos, yPos);
+		changeColor.setScale(Vector2f(0.2, 0.2));
+		game.draw(changeColor);
+	}
+	if (isReverse) {
+		reverse.setPosition(xPos, yPos);
+		reverse.setScale(Vector2f(0.2, 0.2));
+		game.draw(reverse);
+	}
+	if (isNoTurn) {
+		noTurn.setPosition(xPos, yPos);
+		noTurn.setScale(Vector2f(0.2, 0.2));
+		game.draw(noTurn);
+	}
+
 	cardText.setPosition(xPos + 20 + auxX, yPos + 31);
 	game.draw(cardText);
 }
