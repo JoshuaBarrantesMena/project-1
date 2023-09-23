@@ -1,7 +1,7 @@
 #pragma once
 #include "UnoCard.h"
 
-class CardsDeck { //mazo para juego: mazo para jugadores
+class CardsDeck {
 
 private:
 
@@ -16,9 +16,10 @@ public:
 	void deckShufle();
 	void setCardDeck(UnoCard, int);
 	void setCardInUse(int, bool);
-	UnoCard getCardDeck(int);
-	int getTotalCards();
-
-
+	void organizeDeck();
+	void addOrganizeCard(UnoCard, bool);
 	void print();
+	int getTotalCards();
+	int getSize();
+	UnoCard getCardDeck(int);
 };

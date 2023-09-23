@@ -12,6 +12,8 @@ Vector2i mousePos;
 Event gameLoop;
 CardsDeck gameDeck(108), playerOneDeck(12), playerTwoDeck(12);
 UnoCard globalCard;
+int delay = 0;
+int turn;
 
 void startMenu() {
 	while (game.isOpen()) {
@@ -79,26 +81,31 @@ void startMenu() {
 
 void startGame() {
 
-	int bottomXPositions[12] = {556, 644, 468, 732, 380, 820, 292, 908, 204, 996, 116, 1084};
-	int topXPositions[12] = {644, 556, 732, 468, 820, 380, 908, 292, 996, 204, 1084, 116};
-	int iterCard, bottomYPosition = 570, topYPosition = 30;
+	int bottomXPositions[12] = { 556, 644, 468, 732, 380, 820, 292, 908, 204, 996, 116, 1084 };
+	int topXPositions[12] = { 644, 556, 732, 468, 820, 380, 908, 292, 996, 204, 1084, 116 };
+	int bottomYPosition = 570, topYPosition = 30;
+	turn = 1;
 
 	gameDeck.fillDeck();
 	gameDeck.deckShufle();
 
 	UnoCard auxCard;
+	int iterCard;
 
 	for (iterCard = 0; iterCard < 8; iterCard++) {
 
 		auxCard = gameDeck.getCardDeck(iterCard);
-		gameDeck.setCardInUse(iterCard, true);
 		playerOneDeck.setCardDeck(auxCard, iterCard);
+		gameDeck.setCardDeck(*new UnoCard, iterCard);
 
 		auxCard = gameDeck.getCardDeck(iterCard + 8);
-		gameDeck.setCardInUse(iterCard + 8, true);
 		playerTwoDeck.setCardDeck(auxCard, iterCard);
+		gameDeck.setCardDeck(*new UnoCard, iterCard + 8);
 	}
 
+	globalCard = gameDeck.getCardDeck(16);
+
+	gameDeck.organizeDeck();
 	gameDeck.print();
 	playerOneDeck.print();
 	playerTwoDeck.print();
@@ -108,7 +115,7 @@ void startGame() {
 
 	Sprite background(backgroundFile), button(buttonFile), card(cardFile), cardOutline(cardOutlineFile);
 	Text unoText("UNO", letterFont, 60), takeCard("Tomar", letterFont, 27);
-	
+
 	unoText.setPosition(1090, 300);
 	unoText.setColor(Color::Black);
 	button.setScale(Vector2f(0.70, 0.70));
@@ -144,24 +151,68 @@ void startGame() {
 		printCard(playerTwoDeck.getCardDeck(i), card, cardOutline, topXPositions[i], topYPosition);
 	}
 
+	printCard(globalCard, card, cardOutline, 600, 300);
+
 	game.display();
 
 	bool isWaitingClick = true;
+	int selectedCard = -1;
+
+	bool isUsableCardOne[12];
+	bool isUsableCardTwo[12];
 
 	while (true) {
-		for (iterCard = 0; iterCard < playerOneDeck.getTotalCards(); iterCard++) {
-			if (isClickingCard(bottomXPositions[iterCard], bottomYPosition)) {
-				cout << iterCard + 1;
-				isWaitingClick = false;
+
+		for (iterCard = 0; iterCard < playerOneDeck.getSize(); iterCard++) {
+			if (verifyCard(playerOneDeck.getCardDeck(iterCard))) {
+				isUsableCardOne[iterCard] = true;
+			}
+			else {
+				isUsableCardOne[iterCard] = false;
 			}
 		}
 
-		for (iterCard = 0; iterCard < playerTwoDeck.getTotalCards(); iterCard++) {
-			if (isClickingCard(topXPositions[iterCard], topYPosition)) {
-				cout << iterCard + 1;
-				isWaitingClick = false;
+		while (isWaitingClick) {
+
+			for (iterCard = 0; iterCard < playerOneDeck.getTotalCards(); iterCard++) {
+				if (isClickingCard(bottomXPositions[iterCard], bottomYPosition) && isUsableCardOne[iterCard]) {
+					cout << iterCard + 1 << " "; //
+					isWaitingClick = false;
+				}
+			}
+			loopRefresh();
+		}
+
+		turn++;
+		selectedCard = -1;
+		isWaitingClick = true;
+
+
+
+
+		for (iterCard = 0; iterCard < playerTwoDeck.getSize(); iterCard++) {
+			if (verifyCard(playerTwoDeck.getCardDeck(iterCard))) {
+				isUsableCardTwo[iterCard] = true;
+			}
+			else {
+				isUsableCardTwo[iterCard] = false;
 			}
 		}
+
+		while (isWaitingClick) {
+
+			for (iterCard = 0; iterCard < playerTwoDeck.getTotalCards(); iterCard++) {
+				if (isClickingCard(topXPositions[iterCard], topYPosition) && isUsableCardTwo[iterCard]) {
+					cout << iterCard + 1 << " "; //
+					isWaitingClick = false;
+				}
+			}
+			loopRefresh();
+		}
+
+		turn++;
+		selectedCard = -1;
+		isWaitingClick = true;
 
 		loopRefresh();
 	}
@@ -315,6 +366,59 @@ bool isClickingCard(int xPosCard, int yPosCard) {
 		}
 		return true;
 	}
+	return false;
+}
+
+bool verifyCard(UnoCard selectedCard) {
+
+	if (selectedCard.getType() == 'v') {
+		return false;
+	}
+
+	switch (selectedCard.getType()) {
+
+	case 's':
+		if ((turn == 1 && globalCard.getColor() == selectedCard.getColor()) ||
+			(globalCard.getColor() == selectedCard.getColor() && globalCard.getType() != 'r' &&
+			globalCard.getType() != '4' && globalCard.getType() == 's')) {
+			return true;
+		}
+		break;
+	case 'r':
+		if ((turn == 1 && globalCard.getColor() == selectedCard.getColor()) || (globalCard.getType() != '4' &&
+			globalCard.getColor() == selectedCard.getColor()) &&
+			globalCard.getType() != 'r') {
+			return true;
+		}
+		break;
+	case '2':
+		if ((turn == 1 && globalCard.getColor() == selectedCard.getColor()) || 
+			(globalCard.getType() != 'r' && globalCard.getType() != '2') &&
+			globalCard.getColor() == selectedCard.getColor()) {
+			return true;
+		}
+		break;
+	case '4':
+		if (globalCard.getType() != 'r') {
+			return true;
+		}
+		break;
+	case 'c':
+		if (turn == 1 || globalCard.getType() != 'r') {
+			return true;
+		}
+		break;
+	case 'n':
+		if ((selectedCard.getColor() == globalCard.getColor() && globalCard.getType() != 'v' ) ||
+			(turn == 1 && selectedCard.getColor() == globalCard.getColor())) {
+			return true;
+		}
+		break;
+	default:
+		break;
+	}
+	
+
 	return false;
 }
 

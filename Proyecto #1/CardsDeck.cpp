@@ -114,6 +114,50 @@ int CardsDeck::getTotalCards() {
 	return totalCards;
 }
 
+void CardsDeck::organizeDeck() {
+
+	int iter, aux;
+	UnoCard auxCard;
+
+	for (iter = 0; iter < size; iter++) {
+
+		aux = iter;
+		auxCard = deck[iter];
+
+		while (aux > 0 && deck[aux - 1].getType() == 'v') {
+			deck[aux] = deck[aux - 1];
+			aux--;
+		}
+		deck[aux] = auxCard;
+	}
+}
+
+void CardsDeck::addOrganizeCard(UnoCard card, bool stackDeck) {
+
+	int iter = 0;
+	UnoCard auxCard;
+
+	if (stackDeck) {
+		while (deck[iter].getType() == 'v') {
+			iter++;
+		}
+		deck[iter] = card;
+	}
+	else {
+		for (iter = 1; iter < size; iter++) {
+			auxCard = deck[iter];
+			deck[iter] = deck[iter - 1];
+			deck[iter - 1] = auxCard;
+		}
+		deck[0] = card;
+	}
+}
+
+int CardsDeck::getSize() {
+
+	return size;
+}
+
 void CardsDeck::print() {
 
 	for (int i = 0; i < size; i++) {

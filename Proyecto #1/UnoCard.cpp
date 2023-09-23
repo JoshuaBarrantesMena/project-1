@@ -44,7 +44,7 @@ bool UnoCard::getInUse() {
 void UnoCard::setCardInUse(bool isInUse) {
 
 	cardInUse = isInUse;
-}
+} // quitar
 
 UnoCard& UnoCard::operator=(UnoCard card) {
 
