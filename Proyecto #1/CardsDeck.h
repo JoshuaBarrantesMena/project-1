@@ -15,10 +15,9 @@ public:
 	void fillDeck();
 	void deckShufle();
 	void setCardDeck(UnoCard, int);
-	void setCardInUse(int, bool);
 	void organizeDeck();
 	void addOrganizeCard(UnoCard, bool);
-	void print();
+	void print(); //eliminable
 	int getTotalCards();
 	int getSize();
 	UnoCard getCardDeck(int);

@@ -132,14 +132,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CardsDeck.cpp" />
-    <ClCompile Include="Funtions.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="UnoCard.cpp" />
     <ClCompile Include="UnoEngine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CardsDeck.h" />
-    <ClInclude Include="Funtions.h" />
     <ClInclude Include="UnoCard.h" />
     <ClInclude Include="UnoEngine.h" />
   </ItemGroup>

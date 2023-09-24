@@ -7,7 +7,9 @@ using namespace sf;
 RenderWindow game(VideoMode(1280, 720), "UNO!");
 Texture backgroundFile, buttonFile, cardFile;
 Texture cardOutlineFile, cardChangeColorFile, cardNoTurnFile, cardReverseFile;
+Sprite background, button, card, cardOutline;
 Font letterFont;
+Text unoText, takeCard;
 Vector2i mousePos;
 Event gameLoop;
 CardsDeck gameDeck(108), playerOneDeck(12), playerTwoDeck(12);
@@ -26,8 +28,13 @@ void startMenu() {
 		cardChangeColorFile.loadFromFile("Textures/UnocardChangeColor.png");
 		cardNoTurnFile.loadFromFile("Textures/UnocardNoTurn.png");
 		cardReverseFile.loadFromFile("textures/UnocardReverse.png");
-
-		Sprite background(backgroundFile), button(buttonFile);
+		background.setTexture(backgroundFile);
+		button.setTexture(buttonFile);
+		
+		cardFile.loadFromFile("Textures/UnoCard.png");
+		cardOutlineFile.loadFromFile("Textures/UnocardOutline.png");
+		card.setTexture(cardFile);
+		cardOutline.setTexture(cardOutlineFile);
 
 		Text menuText("¡JUEGA UNO EN C++!", letterFont, 90), buttonText("Empezar", letterFont, 60);
 
@@ -72,8 +79,7 @@ void startMenu() {
 				}
 			}
 		}
-		game.draw(background);
-		game.display();
+
 		startGame();
 		system("pause");
 	}
@@ -84,7 +90,7 @@ void startGame() {
 	int bottomXPositions[12] = { 556, 644, 468, 732, 380, 820, 292, 908, 204, 996, 116, 1084 };
 	int topXPositions[12] = { 644, 556, 732, 468, 820, 380, 908, 292, 996, 204, 1084, 116 };
 	int bottomYPosition = 570, topYPosition = 30;
-	turn = 1;
+	turn = 1; //futuro
 
 	gameDeck.fillDeck();
 	gameDeck.deckShufle();
@@ -106,15 +112,16 @@ void startGame() {
 	globalCard = gameDeck.getCardDeck(16);
 
 	gameDeck.organizeDeck();
-	gameDeck.print();
-	playerOneDeck.print();
-	playerTwoDeck.print();
+	gameDeck.print();  //eliminable
+	playerOneDeck.print();  //eliminable
+	playerTwoDeck.print();  //eliminable
 
-	cardFile.loadFromFile("Textures/UnoCard.png");
-	cardOutlineFile.loadFromFile("Textures/UnocardOutline.png");
-
-	Sprite background(backgroundFile), button(buttonFile), card(cardFile), cardOutline(cardOutlineFile);
-	Text unoText("UNO", letterFont, 60), takeCard("Tomar", letterFont, 27);
+	unoText.setString("UNO");
+	unoText.setFont(letterFont);
+	unoText.setCharacterSize(60);
+	takeCard.setString("Tomar");
+	takeCard.setFont(letterFont);
+	takeCard.setCharacterSize(27);
 
 	unoText.setPosition(1090, 300);
 	unoText.setColor(Color::Black);
@@ -124,37 +131,6 @@ void startGame() {
 	card.setScale(Vector2f(0.2, 0.2));
 	cardOutline.setScale(Vector2f(0.2, 0.2));
 
-	game.draw(background);
-	game.draw(button);
-	game.draw(unoText);
-
-	card.setPosition(60, 300);
-
-	game.draw(card);
-
-	takeCard.setRotation(310);
-	takeCard.setPosition(59, 380);
-	takeCard.setColor(Color::Black);
-
-	game.draw(takeCard);
-
-	takeCard.setPosition(62, 379);
-	takeCard.setColor(Color(255, 218, 0, 255));
-
-	game.draw(takeCard);
-
-	for (int i = 0; i < 12; i++) {
-		printCard(playerOneDeck.getCardDeck(i), card, cardOutline, bottomXPositions[i], bottomYPosition);
-	}
-
-	for (int i = 0; i < 12; i++) {
-		printCard(playerTwoDeck.getCardDeck(i), card, cardOutline, topXPositions[i], topYPosition);
-	}
-
-	printCard(globalCard, card, cardOutline, 600, 300);
-
-	game.display();
-
 	bool isWaitingClick = true;
 	int selectedCard = -1;
 
@@ -162,6 +138,8 @@ void startGame() {
 	bool isUsableCardTwo[12];
 
 	while (true) {
+
+		refreshWindow(bottomXPositions, topXPositions, bottomYPosition, topYPosition);
 
 		for (iterCard = 0; iterCard < playerOneDeck.getSize(); iterCard++) {
 			if (verifyCard(playerOneDeck.getCardDeck(iterCard))) {
@@ -176,7 +154,7 @@ void startGame() {
 
 			for (iterCard = 0; iterCard < playerOneDeck.getTotalCards(); iterCard++) {
 				if (isClickingCard(bottomXPositions[iterCard], bottomYPosition) && isUsableCardOne[iterCard]) {
-					cout << iterCard + 1 << " "; //
+					cout << iterCard + 1 << " "; //eliminable
 					isWaitingClick = false;
 				}
 			}
@@ -187,7 +165,7 @@ void startGame() {
 		selectedCard = -1;
 		isWaitingClick = true;
 
-
+		refreshWindow(bottomXPositions, topXPositions, bottomYPosition, topYPosition);
 
 
 		for (iterCard = 0; iterCard < playerTwoDeck.getSize(); iterCard++) {
@@ -203,7 +181,7 @@ void startGame() {
 
 			for (iterCard = 0; iterCard < playerTwoDeck.getTotalCards(); iterCard++) {
 				if (isClickingCard(topXPositions[iterCard], topYPosition) && isUsableCardTwo[iterCard]) {
-					cout << iterCard + 1 << " "; //
+					cout << iterCard + 1 << " "; //eliminable
 					isWaitingClick = false;
 				}
 			}
@@ -215,35 +193,6 @@ void startGame() {
 		isWaitingClick = true;
 
 		loopRefresh();
-	}
-}
-
-bool mouseDetect(Vector2i mousePos, Vector2f topPos, Vector2f bottomPos) {
-
-	mousePos = Mouse::getPosition(game);
-
-	bool isInTop = false;
-	bool isInBottom = false;
-
-	if ((mousePos.x > topPos.x) && (mousePos.x < topPos.y)) {
-		isInTop = true;
-	}
-	else {
-		isInTop = false;
-	}
-
-	if ((mousePos.y > bottomPos.x) && (mousePos.y < bottomPos.y)) {
-		isInBottom = true;
-	}
-	else {
-		isInBottom = false;
-	}
-
-	if (isInTop && isInBottom) {
-		return true;
-	}
-	else {
-		return false;
 	}
 }
 
@@ -321,7 +270,7 @@ void printCard(UnoCard actualCard, Sprite cardSprite, Sprite cardOutlineSprite, 
 	cardSprite.setPosition(xPos, yPos);
 	cardOutlineSprite.setPosition(xPos, yPos);
 
-	if (actualCard.getType() != 'v'){
+	if (actualCard.getType() != 'v') {
 		game.draw(cardSprite);
 		game.draw(cardOutlineSprite);
 	}
@@ -343,6 +292,74 @@ void printCard(UnoCard actualCard, Sprite cardSprite, Sprite cardOutlineSprite, 
 
 	cardText.setPosition(xPos + 20 + auxX, yPos + 31);
 	game.draw(cardText);
+}
+
+void refreshWindow(int* bottomXPositions, int* topXPositions, int bottomYPosition, int topYPosition) {
+
+	int iterCard;
+
+	game.draw(background);
+	game.draw(button);
+	game.draw(unoText);
+
+	card.setPosition(60, 300);
+	game.draw(card);
+
+	takeCard.setRotation(310);
+	takeCard.setPosition(59, 380);
+	takeCard.setColor(Color::Black);
+	game.draw(takeCard);
+	takeCard.setPosition(62, 379);
+	takeCard.setColor(Color(255, 218, 0, 255));
+	game.draw(takeCard);
+
+	for (iterCard = 0; iterCard < 12; iterCard++) {
+		printCard(playerOneDeck.getCardDeck(iterCard), card, cardOutline, bottomXPositions[iterCard], bottomYPosition);
+	}
+	for (iterCard = 0; iterCard < 12; iterCard++) {
+		printCard(playerTwoDeck.getCardDeck(iterCard), card, cardOutline, topXPositions[iterCard], topYPosition);
+	}
+	printCard(globalCard, card, cardOutline, 600, 300);
+
+	game.display();
+}
+
+void loopRefresh() {
+
+	while (game.pollEvent(gameLoop)) {
+		if (gameLoop.type == Event::Closed) {
+			game.close();
+		}
+	}
+}
+
+bool mouseDetect(Vector2i mousePos, Vector2f topPos, Vector2f bottomPos) {
+
+	mousePos = Mouse::getPosition(game);
+
+	bool isInTop = false;
+	bool isInBottom = false;
+
+	if ((mousePos.x > topPos.x) && (mousePos.x < topPos.y)) {
+		isInTop = true;
+	}
+	else {
+		isInTop = false;
+	}
+
+	if ((mousePos.y > bottomPos.x) && (mousePos.y < bottomPos.y)) {
+		isInBottom = true;
+	}
+	else {
+		isInBottom = false;
+	}
+
+	if (isInTop && isInBottom) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 bool isClickingCard(int xPosCard, int yPosCard) {
@@ -417,16 +434,32 @@ bool verifyCard(UnoCard selectedCard) {
 	default:
 		break;
 	}
-	
-
 	return false;
 }
 
-void loopRefresh() {
+void actionCard(UnoCard actualCard) { //terminar
 
-	while (game.pollEvent(gameLoop)) {
-		if (gameLoop.type == Event::Closed) {
-			game.close();
-		}
+	switch (actualCard.getType()) {
+
+	case 's':
+
+		break;
+	case 'r':
+		
+		break;
+	case '2':
+
+		break;
+	case '4':
+
+		break;
+	case 'c':
+
+		break;
+	case 'n':
+
+		break;
+	default:
+		break;
 	}
 }

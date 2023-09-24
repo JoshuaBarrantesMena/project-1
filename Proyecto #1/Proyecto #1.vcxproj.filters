@@ -24,9 +24,6 @@
     <ClCompile Include="CardsDeck.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="Funtions.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="UnoEngine.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -36,9 +33,6 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="CardsDeck.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="Funtions.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="UnoEngine.h">

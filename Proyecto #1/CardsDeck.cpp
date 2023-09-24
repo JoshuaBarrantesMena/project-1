@@ -41,13 +41,13 @@ void CardsDeck::fillDeck() {
 
 			if (iterCard != 0) { //cartas numero
 
-				deck[arrayControl] = UnoCard(iterCard, colors[iterColor], cardType[5], false);
+				deck[arrayControl] = UnoCard(iterCard, colors[iterColor], cardType[5]);
 				arrayControl++;
-				deck[arrayControl] = UnoCard(iterCard, colors[iterColor], cardType[5], false);
+				deck[arrayControl] = UnoCard(iterCard, colors[iterColor], cardType[5]);
 				arrayControl++;
 			}
 			else {
-				deck[arrayControl] = UnoCard(iterCard, colors[iterColor], cardType[5], false);
+				deck[arrayControl] = UnoCard(iterCard, colors[iterColor], cardType[5]);
 				arrayControl++;
 			}
 		}
@@ -56,9 +56,9 @@ void CardsDeck::fillDeck() {
 	for (iterCard = 0; iterCard < comodinColorCards; iterCard++) { //cartas comodin de colores
 		for (iterColor = 0; iterColor < colorCards; iterColor++) { //color de cada carta
 
-			deck[arrayControl] = UnoCard(-1, colors[iterColor], cardType[iterCard], false);
+			deck[arrayControl] = UnoCard(-1, colors[iterColor], cardType[iterCard]);
 			arrayControl++;
-			deck[arrayControl] = UnoCard(-1, colors[iterColor], cardType[iterCard], false);
+			deck[arrayControl] = UnoCard(-1, colors[iterColor], cardType[iterCard]);
 			arrayControl++;
 		}
 	}
@@ -66,7 +66,7 @@ void CardsDeck::fillDeck() {
 	for (iterCard = 1; iterCard < comodinColorCards; iterCard++) { //cartas comodin de colores
 		for (iterTypePos = 0; iterTypePos < colorCards; iterTypePos++) { //color de cada carta
 
-			deck[arrayControl] = UnoCard(-1, colors[4], cardType[iterCard + 2], false);
+			deck[arrayControl] = UnoCard(-1, colors[4], cardType[iterCard + 2]);
 			arrayControl++;
 		}
 	}
@@ -89,29 +89,6 @@ void CardsDeck::deckShufle() {
 void CardsDeck::setCardDeck(UnoCard actualCard, int cardPos) {
 
 	deck[cardPos] = actualCard;
-}
-
-void CardsDeck::setCardInUse(int cardPos, bool isInUse) {
-	
-	deck[cardPos].setCardInUse(isInUse);
-}
-
-UnoCard CardsDeck::getCardDeck(int cardPos) {
-
-	return deck[cardPos];
-}
-
-int CardsDeck::getTotalCards() {
-
-	int iterDeck, totalCards = 0;
-
-	for (iterDeck = 0; iterDeck < size; iterDeck++) {
-
-		if (deck[iterDeck].getType() != 'v') {
-			totalCards++;
-		}
-	}
-	return totalCards;
 }
 
 void CardsDeck::organizeDeck() {
@@ -153,19 +130,36 @@ void CardsDeck::addOrganizeCard(UnoCard card, bool stackDeck) {
 	}
 }
 
-int CardsDeck::getSize() {
-
-	return size;
-}
-
 void CardsDeck::print() {
 
 	for (int i = 0; i < size; i++) {
 
 		deck[i].print();
-		cout << " posision: " << i+1 << "\n";
-		
+		cout << " posision: " << i + 1 << "\n";
+
 
 	}
+}
 
+int CardsDeck::getTotalCards() {
+
+	int iterDeck, totalCards = 0;
+
+	for (iterDeck = 0; iterDeck < size; iterDeck++) {
+
+		if (deck[iterDeck].getType() != 'v') {
+			totalCards++;
+		}
+	}
+	return totalCards;
+}
+
+int CardsDeck::getSize() {
+
+	return size;
+}
+
+UnoCard CardsDeck::getCardDeck(int cardPos) {
+
+	return deck[cardPos];
 }
