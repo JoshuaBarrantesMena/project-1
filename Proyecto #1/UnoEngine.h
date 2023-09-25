@@ -13,6 +13,7 @@ bool mouseDetect(Vector2i, Vector2f, Vector2f);
 bool isClickingCard(int, int);
 bool verifyCard(UnoCard);
 
-void actionCard(UnoCard);
+void actionCard(UnoCard, int, bool);
 //changeColorAction();
-//addCardAction();
+//addCardAction(int);
+//takeCardAction();

@@ -14,7 +14,7 @@ Vector2i mousePos;
 Event gameLoop;
 CardsDeck gameDeck(108), playerOneDeck(12), playerTwoDeck(12);
 UnoCard globalCard;
-int delay = 0;
+int jumpTurn;
 int turn;
 
 void startMenu() {
@@ -27,7 +27,7 @@ void startMenu() {
 		letterFont.loadFromFile("Fonts/Cabin-Bold.ttf");
 		cardChangeColorFile.loadFromFile("Textures/UnocardChangeColor.png");
 		cardNoTurnFile.loadFromFile("Textures/UnocardNoTurn.png");
-		cardReverseFile.loadFromFile("textures/UnocardReverse.png");
+		cardReverseFile.loadFromFile("Textures/UnocardReverse.png");
 		background.setTexture(backgroundFile);
 		button.setTexture(buttonFile);
 		
@@ -137,9 +137,12 @@ void startGame() {
 	bool isUsableCardOne[12];
 	bool isUsableCardTwo[12];
 
+	jumpTurn = 0;
+
 	while (true) {
 
 		refreshWindow(bottomXPositions, topXPositions, bottomYPosition, topYPosition);
+
 
 		for (iterCard = 0; iterCard < playerOneDeck.getSize(); iterCard++) {
 			if (verifyCard(playerOneDeck.getCardDeck(iterCard))) {
@@ -149,24 +152,30 @@ void startGame() {
 				isUsableCardOne[iterCard] = false;
 			}
 		}
-
 		while (isWaitingClick) {
 
 			for (iterCard = 0; iterCard < playerOneDeck.getTotalCards(); iterCard++) {
-				if (isClickingCard(bottomXPositions[iterCard], bottomYPosition) && isUsableCardOne[iterCard]) {
-					cout << iterCard + 1 << " "; //eliminable
+				if (isClickingCard(bottomXPositions[iterCard], bottomYPosition) && isUsableCardOne[iterCard] && jumpTurn == 0) {
+					
+					cout << iterCard + 1 << " " << playerOneDeck.getCardDeck(iterCard).getType();//eliminable
+					
+					actionCard(playerOneDeck.getCardDeck(iterCard), iterCard, true);
 					isWaitingClick = false;
 				}
 			}
+			if (jumpTurn != 0) {
+				isWaitingClick = false;
+			}
 			loopRefresh();
 		}
-
 		turn++;
-		selectedCard = -1;
 		isWaitingClick = true;
+		if (jumpTurn != 0) {
+			jumpTurn--;
+		}
+
 
 		refreshWindow(bottomXPositions, topXPositions, bottomYPosition, topYPosition);
-
 
 		for (iterCard = 0; iterCard < playerTwoDeck.getSize(); iterCard++) {
 			if (verifyCard(playerTwoDeck.getCardDeck(iterCard))) {
@@ -176,21 +185,27 @@ void startGame() {
 				isUsableCardTwo[iterCard] = false;
 			}
 		}
-
 		while (isWaitingClick) {
 
 			for (iterCard = 0; iterCard < playerTwoDeck.getTotalCards(); iterCard++) {
-				if (isClickingCard(topXPositions[iterCard], topYPosition) && isUsableCardTwo[iterCard]) {
-					cout << iterCard + 1 << " "; //eliminable
+				if (isClickingCard(topXPositions[iterCard], topYPosition) && isUsableCardTwo[iterCard] && jumpTurn == 0) {
+					
+					cout << iterCard + 1 << " " << playerTwoDeck.getCardDeck(iterCard).getType(); //eliminable
+					
+					actionCard(playerTwoDeck.getCardDeck(iterCard), iterCard, false);
 					isWaitingClick = false;
 				}
 			}
+			if (jumpTurn != 0) {
+				isWaitingClick = false;
+			}
 			loopRefresh();
 		}
-
 		turn++;
-		selectedCard = -1;
 		isWaitingClick = true;
+		if (jumpTurn != 0) {
+			jumpTurn--;
+		}
 
 		loopRefresh();
 	}
@@ -208,10 +223,10 @@ void printCard(UnoCard actualCard, Sprite cardSprite, Sprite cardOutlineSprite, 
 	switch (actualCard.getType()) {
 
 	case 's':
-		isReverse = true;
+		isNoTurn = true;
 		break;
 	case 'r':
-		isNoTurn = true;
+		isReverse = true;
 		break;
 	case '2':
 		cardCharacter = "+2";
@@ -397,7 +412,7 @@ bool verifyCard(UnoCard selectedCard) {
 	case 's':
 		if ((turn == 1 && globalCard.getColor() == selectedCard.getColor()) ||
 			(globalCard.getColor() == selectedCard.getColor() && globalCard.getType() != 'r' &&
-			globalCard.getType() != '4' && globalCard.getType() == 's')) {
+			globalCard.getType() != '4')) {
 			return true;
 		}
 		break;
@@ -437,15 +452,27 @@ bool verifyCard(UnoCard selectedCard) {
 	return false;
 }
 
-void actionCard(UnoCard actualCard) { //terminar
+void actionCard(UnoCard actualCard, int posCard, bool isPlayerOneDeck){
+
+	gameDeck.addOrganizeCard(globalCard, false);
+	globalCard = actualCard;
+
+	if (isPlayerOneDeck) {
+		playerOneDeck.setCardDeck(*new UnoCard, posCard);
+		playerOneDeck.organizeDeck();
+	}
+	else {
+		playerTwoDeck.setCardDeck(*new UnoCard, posCard);
+		playerTwoDeck.organizeDeck();
+	}
 
 	switch (actualCard.getType()) {
 
 	case 's':
-
+		jumpTurn = 2;
 		break;
 	case 'r':
-		
+		turn++;
 		break;
 	case '2':
 
@@ -457,7 +484,15 @@ void actionCard(UnoCard actualCard) { //terminar
 
 		break;
 	case 'n':
-
+		if (actualCard.getNumber() == 0) {
+			UnoCard auxCard;
+			int iterCard, auxIterCard = playerOneDeck.getSize();
+			for (int iterCard = 0; iterCard < playerOneDeck.getSize(); iterCard++) {
+				auxCard = playerOneDeck.getCardDeck(iterCard);
+				playerOneDeck.setCardDeck(playerTwoDeck.getCardDeck(iterCard), iterCard);
+				playerTwoDeck.setCardDeck(auxCard, iterCard);
+			}
+		}
 		break;
 	default:
 		break;

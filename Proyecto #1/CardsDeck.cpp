@@ -115,16 +115,14 @@ void CardsDeck::addOrganizeCard(UnoCard card, bool stackDeck) {
 	UnoCard auxCard;
 
 	if (stackDeck) {
-		while (deck[iter].getType() == 'v') {
+		while (deck[iter].getType() != 'v') {
 			iter++;
 		}
 		deck[iter] = card;
 	}
 	else {
-		for (iter = 1; iter < size; iter++) {
-			auxCard = deck[iter];
+		for (iter = size - 1; iter > 0; iter--) {
 			deck[iter] = deck[iter - 1];
-			deck[iter - 1] = auxCard;
 		}
 		deck[0] = card;
 	}
