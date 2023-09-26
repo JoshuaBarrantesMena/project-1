@@ -20,7 +20,7 @@ public:
 	int getNumber();
 	char getColor();
 	char getType();
-	void print(); //eliminable
+	void setColor(char);
 
 	UnoCard& operator=(UnoCard);
 };

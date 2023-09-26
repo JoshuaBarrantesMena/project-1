@@ -12,9 +12,9 @@ CardsDeck::CardsDeck() {
 	}
 }
 
-CardsDeck::CardsDeck(int deckSize) {
+CardsDeck::CardsDeck(int pDeckSize) {
 
-	size = deckSize;
+	size = pDeckSize;
 	int iter;
 	deck = new UnoCard[size];
 
@@ -36,10 +36,10 @@ void CardsDeck::fillDeck() {
 
 	int iterCard, iterColor, iterTypePos, arrayControl = 0;
 
-	for (iterColor = 0; iterColor < colorCards; iterColor++) { //cartas del 0 al 9
-		for (iterCard = 0; iterCard < numberCards; iterCard++) { //color de cada carta
+	for (iterColor = 0; iterColor < colorCards; iterColor++) {
+		for (iterCard = 0; iterCard < numberCards; iterCard++) {
 
-			if (iterCard != 0) { //cartas numero
+			if (iterCard != 0) {
 
 				deck[arrayControl] = UnoCard(iterCard, colors[iterColor], cardType[5]);
 				arrayControl++;
@@ -53,8 +53,8 @@ void CardsDeck::fillDeck() {
 		}
 	}
 
-	for (iterCard = 0; iterCard < comodinColorCards; iterCard++) { //cartas comodin de colores
-		for (iterColor = 0; iterColor < colorCards; iterColor++) { //color de cada carta
+	for (iterCard = 0; iterCard < comodinColorCards; iterCard++) {
+		for (iterColor = 0; iterColor < colorCards; iterColor++) {
 
 			deck[arrayControl] = UnoCard(-1, colors[iterColor], cardType[iterCard]);
 			arrayControl++;
@@ -63,8 +63,8 @@ void CardsDeck::fillDeck() {
 		}
 	}
 
-	for (iterCard = 1; iterCard < comodinColorCards; iterCard++) { //cartas comodin de colores
-		for (iterTypePos = 0; iterTypePos < colorCards; iterTypePos++) { //color de cada carta
+	for (iterCard = 1; iterCard < comodinColorCards; iterCard++) {
+		for (iterTypePos = 0; iterTypePos < colorCards; iterTypePos++) {
 
 			deck[arrayControl] = UnoCard(-1, colors[4], cardType[iterCard + 2]);
 			arrayControl++;
@@ -86,9 +86,9 @@ void CardsDeck::deckShufle() {
 	}
 }
 
-void CardsDeck::setCardDeck(UnoCard actualCard, int cardPos) {
+void CardsDeck::setCardDeck(UnoCard pActualCard, int pCardPosition) {
 
-	deck[cardPos] = actualCard;
+	deck[pCardPosition] = pActualCard;
 }
 
 void CardsDeck::organizeDeck() {
@@ -109,33 +109,22 @@ void CardsDeck::organizeDeck() {
 	}
 }
 
-void CardsDeck::addOrganizeCard(UnoCard card, bool stackDeck) {
+void CardsDeck::addOrganizeCard(UnoCard pCard, bool pStackDeck) {
 
 	int iter = 0;
 	UnoCard auxCard;
 
-	if (stackDeck) {
+	if (pStackDeck) {
 		while (deck[iter].getType() != 'v') {
 			iter++;
 		}
-		deck[iter] = card;
+		deck[iter] = pCard;
 	}
 	else {
 		for (iter = size - 1; iter > 0; iter--) {
 			deck[iter] = deck[iter - 1];
 		}
-		deck[0] = card;
-	}
-}
-
-void CardsDeck::print() {
-
-	for (int i = 0; i < size; i++) {
-
-		deck[i].print();
-		cout << " posision: " << i + 1 << "\n";
-
-
+		deck[0] = pCard;
 	}
 }
 
@@ -157,7 +146,7 @@ int CardsDeck::getSize() {
 	return size;
 }
 
-UnoCard CardsDeck::getCardDeck(int cardPos) {
+UnoCard CardsDeck::getCardDeck(int pCardPosition) {
 
-	return deck[cardPos];
+	return deck[pCardPosition];
 }

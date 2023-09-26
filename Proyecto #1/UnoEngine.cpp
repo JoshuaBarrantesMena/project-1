@@ -6,16 +6,16 @@ using namespace sf;
 
 RenderWindow game(VideoMode(1280, 720), "UNO!");
 Texture backgroundFile, buttonFile, cardFile;
-Texture cardOutlineFile, cardChangeColorFile, cardNoTurnFile, cardReverseFile;
-Sprite background, button, card, cardOutline;
+Texture cardOutlineFile, cardChangeColorFile, cardNoTurnFile, cardReverseFile, changeColorMenuFile;
+Sprite background, button, buttonSkip, card, cardOutline, changeColorMenu;
 Font letterFont;
-Text unoText, takeCard;
+Text unoText, takeCard, skip;
 Vector2i mousePos;
 Event gameLoop;
 CardsDeck gameDeck(108), playerOneDeck(12), playerTwoDeck(12);
-UnoCard globalCard;
+UnoCard globalCard, globalCardAux;
 int jumpTurn;
-int turn;
+int turn, winnerPlayer = 0;
 
 void startMenu() {
 	while (game.isOpen()) {
@@ -28,13 +28,16 @@ void startMenu() {
 		cardChangeColorFile.loadFromFile("Textures/UnocardChangeColor.png");
 		cardNoTurnFile.loadFromFile("Textures/UnocardNoTurn.png");
 		cardReverseFile.loadFromFile("Textures/UnocardReverse.png");
-		background.setTexture(backgroundFile);
-		button.setTexture(buttonFile);
-		
 		cardFile.loadFromFile("Textures/UnoCard.png");
 		cardOutlineFile.loadFromFile("Textures/UnocardOutline.png");
+		changeColorMenuFile.loadFromFile("Textures/ChangeColorMenu.png");
+
+		background.setTexture(backgroundFile);
+		button.setTexture(buttonFile);
+		buttonSkip.setTexture(buttonFile);
 		card.setTexture(cardFile);
 		cardOutline.setTexture(cardOutlineFile);
+		changeColorMenu.setTexture(changeColorMenuFile);
 
 		Text menuText("¡JUEGA UNO EN C++!", letterFont, 90), buttonText("Empezar", letterFont, 60);
 
@@ -81,7 +84,6 @@ void startMenu() {
 		}
 
 		startGame();
-		system("pause");
 	}
 }
 
@@ -90,7 +92,11 @@ void startGame() {
 	int bottomXPositions[12] = { 556, 644, 468, 732, 380, 820, 292, 908, 204, 996, 116, 1084 };
 	int topXPositions[12] = { 644, 556, 732, 468, 820, 380, 908, 292, 996, 204, 1084, 116 };
 	int bottomYPosition = 570, topYPosition = 30;
-	turn = 1; //futuro
+	turn = 1;
+
+	Text winnerText(" ", letterFont, 50);
+	winnerText.setPosition(600, 335);
+	winnerText.setColor(Color::Magenta);
 
 	gameDeck.fillDeck();
 	gameDeck.deckShufle();
@@ -110,62 +116,73 @@ void startGame() {
 	}
 
 	globalCard = gameDeck.getCardDeck(16);
-
+	globalCardAux = globalCard;
 	gameDeck.organizeDeck();
-	gameDeck.print();  //eliminable
-	playerOneDeck.print();  //eliminable
-	playerTwoDeck.print();  //eliminable
 
 	unoText.setString("UNO");
 	unoText.setFont(letterFont);
 	unoText.setCharacterSize(60);
+
+	skip.setString("saltar");
+	skip.setFont(letterFont);
+	skip.setCharacterSize(30);
+	skip.setColor(Color::Black);
+	skip.setPosition(65, 200);
+
 	takeCard.setString("Tomar");
 	takeCard.setFont(letterFont);
 	takeCard.setCharacterSize(27);
 
 	unoText.setPosition(1090, 300);
 	unoText.setColor(Color::Black);
-	button.setScale(Vector2f(0.70, 0.70));
-	button.setPosition(1028, 280);
 
 	card.setScale(Vector2f(0.2, 0.2));
 	cardOutline.setScale(Vector2f(0.2, 0.2));
+	button.setScale(Vector2f(0.70, 0.70));
+	buttonSkip.setScale(Vector2f(0.4, 0.4));
+
+	button.setPosition(1028, 280);
+	buttonSkip.setPosition(30, 190);
+
+	changeColorMenu.setScale(Vector2f(0.2, 0.2));
+	changeColorMenu.setPosition(385, 240);
 
 	bool isWaitingClick = true;
 	int selectedCard = -1;
 
 	bool isUsableCardOne[12];
 	bool isUsableCardTwo[12];
+	bool continueGame = true;
 
 	jumpTurn = 0;
 
-	while (true) {
+	while (continueGame) {
 
-		refreshWindow(bottomXPositions, topXPositions, bottomYPosition, topYPosition);
-
-
-		for (iterCard = 0; iterCard < playerOneDeck.getSize(); iterCard++) {
-			if (verifyCard(playerOneDeck.getCardDeck(iterCard))) {
-				isUsableCardOne[iterCard] = true;
-			}
-			else {
-				isUsableCardOne[iterCard] = false;
-			}
-		}
 		while (isWaitingClick) {
 
+			for (iterCard = 0; iterCard < playerOneDeck.getSize(); iterCard++) {
+				if (verifyCard(playerOneDeck.getCardDeck(iterCard))) {
+					isUsableCardOne[iterCard] = true;
+				}
+				else {
+					isUsableCardOne[iterCard] = false;
+				}
+			}
 			for (iterCard = 0; iterCard < playerOneDeck.getTotalCards(); iterCard++) {
 				if (isClickingCard(bottomXPositions[iterCard], bottomYPosition) && isUsableCardOne[iterCard] && jumpTurn == 0) {
-					
-					cout << iterCard + 1 << " " << playerOneDeck.getCardDeck(iterCard).getType();//eliminable
-					
 					actionCard(playerOneDeck.getCardDeck(iterCard), iterCard, true);
 					isWaitingClick = false;
 				}
 			}
+			if (skipTurn()) {
+				isWaitingClick = false;
+			}
+
+			takeActionCard(true);
 			if (jumpTurn != 0) {
 				isWaitingClick = false;
 			}
+			refreshWindow(bottomXPositions, topXPositions, bottomYPosition, topYPosition);
 			loopRefresh();
 		}
 		turn++;
@@ -174,31 +191,38 @@ void startGame() {
 			jumpTurn--;
 		}
 
-
-		refreshWindow(bottomXPositions, topXPositions, bottomYPosition, topYPosition);
-
-		for (iterCard = 0; iterCard < playerTwoDeck.getSize(); iterCard++) {
-			if (verifyCard(playerTwoDeck.getCardDeck(iterCard))) {
-				isUsableCardTwo[iterCard] = true;
-			}
-			else {
-				isUsableCardTwo[iterCard] = false;
-			}
+		if (playerOneDeck.getTotalCards() == 0) {
+			continueGame = false;
+			winnerPlayer = 1;
+			break;
 		}
+
 		while (isWaitingClick) {
 
+			for (iterCard = 0; iterCard < playerTwoDeck.getSize(); iterCard++) {
+				if (verifyCard(playerTwoDeck.getCardDeck(iterCard))) {
+					isUsableCardTwo[iterCard] = true;
+				}
+				else {
+					isUsableCardTwo[iterCard] = false;
+				}
+			}
 			for (iterCard = 0; iterCard < playerTwoDeck.getTotalCards(); iterCard++) {
 				if (isClickingCard(topXPositions[iterCard], topYPosition) && isUsableCardTwo[iterCard] && jumpTurn == 0) {
-					
-					cout << iterCard + 1 << " " << playerTwoDeck.getCardDeck(iterCard).getType(); //eliminable
-					
 					actionCard(playerTwoDeck.getCardDeck(iterCard), iterCard, false);
 					isWaitingClick = false;
 				}
 			}
+			if (skipTurn()) {
+				isWaitingClick = false;
+			}
+
+			takeActionCard(false);
 			if (jumpTurn != 0) {
 				isWaitingClick = false;
 			}
+
+			refreshWindow(bottomXPositions, topXPositions, bottomYPosition, topYPosition);
 			loopRefresh();
 		}
 		turn++;
@@ -207,11 +231,29 @@ void startGame() {
 			jumpTurn--;
 		}
 
+		if (playerTwoDeck.getTotalCards() == 0) {
+			continueGame = false;
+			winnerPlayer = 2;
+			break;
+		}
+
+		loopRefresh();
+	}
+	if (winnerPlayer == 1) {
+		winnerText.setString("Gano el Jugador #1");
+	}
+	else {
+		winnerText.setString("Gano el Jugador #1");
+	}
+
+	while (game.isOpen()) {
+		game.draw(winnerText);
+		game.display();
 		loopRefresh();
 	}
 }
 
-void printCard(UnoCard actualCard, Sprite cardSprite, Sprite cardOutlineSprite, int xPos, int yPos) {
+void printCard(UnoCard pActualCard, int pXPos, int pYPos) {
 
 	string cardCharacter = " ";
 	Sprite changeColor(cardChangeColorFile), noTurn(cardNoTurnFile), reverse(cardReverseFile);
@@ -220,7 +262,7 @@ void printCard(UnoCard actualCard, Sprite cardSprite, Sprite cardOutlineSprite, 
 	bool isReverse = false;
 	bool isNoTurn = false;
 
-	switch (actualCard.getType()) {
+	switch (pActualCard.getType()) {
 
 	case 's':
 		isNoTurn = true;
@@ -240,7 +282,7 @@ void printCard(UnoCard actualCard, Sprite cardSprite, Sprite cardOutlineSprite, 
 		isChangeColor = true;
 		break;
 	case 'n':
-		cardCharacter = to_string(actualCard.getNumber());
+		cardCharacter = to_string(pActualCard.getNumber());
 		auxX = 7;
 		if (cardCharacter == '1') {
 			auxX += 5;
@@ -252,70 +294,74 @@ void printCard(UnoCard actualCard, Sprite cardSprite, Sprite cardOutlineSprite, 
 
 	Text cardText(cardCharacter, letterFont, 45);
 
-	switch (actualCard.getColor()) {
+	switch (pActualCard.getColor()) {
 	case 'B':
 		cardText.setColor(Color::Blue);
-		cardOutlineSprite.setColor(Color::Blue);
+		cardOutline.setColor(Color::Blue);
 		reverse.setColor(Color::Blue);
 		noTurn.setColor(Color::Blue);
 		break;
 	case 'G':
 		cardText.setColor(Color::Green);
-		cardOutlineSprite.setColor(Color::Green);
+		cardOutline.setColor(Color::Green);
 		reverse.setColor(Color::Green);
 		noTurn.setColor(Color::Green);
 		break;
 	case 'R':
 		cardText.setColor(Color::Red);
-		cardOutlineSprite.setColor(Color::Red);
+		cardOutline.setColor(Color::Red);
 		reverse.setColor(Color::Red);
 		noTurn.setColor(Color::Red);
 		break;
 	case 'Y':
 		cardText.setColor(Color::Yellow);
-		cardOutlineSprite.setColor(Color::Yellow);
+		cardOutline.setColor(Color::Yellow);
 		reverse.setColor(Color::Yellow);
 		noTurn.setColor(Color::Yellow);
 		break;
 	case 'N':
 		cardText.setColor(Color::Black);
-		cardOutlineSprite.setColor(Color::Black);
+		cardOutline.setColor(Color::Black);
 		break;
 	}
-	cardSprite.setPosition(xPos, yPos);
-	cardOutlineSprite.setPosition(xPos, yPos);
+	card.setPosition(pXPos, pYPos);
+	cardOutline.setPosition(pXPos, pYPos);
 
-	if (actualCard.getType() != 'v') {
-		game.draw(cardSprite);
-		game.draw(cardOutlineSprite);
+	if (pActualCard.getType() != 'v') {
+		game.draw(card);
+		game.draw(cardOutline);
 	}
 	if (isChangeColor) {
-		changeColor.setPosition(xPos, yPos);
+		changeColor.setPosition(pXPos, pYPos);
 		changeColor.setScale(Vector2f(0.2, 0.2));
 		game.draw(changeColor);
 	}
 	if (isReverse) {
-		reverse.setPosition(xPos, yPos);
+		reverse.setPosition(pXPos, pYPos);
 		reverse.setScale(Vector2f(0.2, 0.2));
 		game.draw(reverse);
 	}
 	if (isNoTurn) {
-		noTurn.setPosition(xPos, yPos);
+		noTurn.setPosition(pXPos, pYPos);
 		noTurn.setScale(Vector2f(0.2, 0.2));
 		game.draw(noTurn);
 	}
 
-	cardText.setPosition(xPos + 20 + auxX, yPos + 31);
+	cardText.setPosition(pXPos + 20 + auxX, pYPos + 31);
 	game.draw(cardText);
 }
 
-void refreshWindow(int* bottomXPositions, int* topXPositions, int bottomYPosition, int topYPosition) {
+void refreshWindow(int* pBottomXPositions, int* pTopXPositions, int pBottomYPosition, int pTopYPosition) {
 
 	int iterCard;
 
 	game.draw(background);
+	game.draw(unoText);
+
 	game.draw(button);
 	game.draw(unoText);
+	game.draw(buttonSkip);
+	game.draw(skip);
 
 	card.setPosition(60, 300);
 	game.draw(card);
@@ -329,14 +375,144 @@ void refreshWindow(int* bottomXPositions, int* topXPositions, int bottomYPositio
 	game.draw(takeCard);
 
 	for (iterCard = 0; iterCard < 12; iterCard++) {
-		printCard(playerOneDeck.getCardDeck(iterCard), card, cardOutline, bottomXPositions[iterCard], bottomYPosition);
+		printCard(playerOneDeck.getCardDeck(iterCard), pBottomXPositions[iterCard], pBottomYPosition);
 	}
 	for (iterCard = 0; iterCard < 12; iterCard++) {
-		printCard(playerTwoDeck.getCardDeck(iterCard), card, cardOutline, topXPositions[iterCard], topYPosition);
+		printCard(playerTwoDeck.getCardDeck(iterCard), pTopXPositions[iterCard], pTopYPosition);
 	}
-	printCard(globalCard, card, cardOutline, 600, 300);
+	printCard(globalCardAux, 600, 300);
 
 	game.display();
+}
+
+void addCardAction(int pNumOfCards, bool pIsPlayerOneDeck){
+
+	int iterCard;
+
+	if (pIsPlayerOneDeck) {
+		if (playerOneDeck.getTotalCards() < playerOneDeck.getSize()) {
+			for (iterCard = 0; iterCard < pNumOfCards; iterCard++) {
+
+				playerOneDeck.addOrganizeCard(gameDeck.getCardDeck(0), true);
+				gameDeck.setCardDeck(*new UnoCard, 0);
+				gameDeck.organizeDeck();
+			}
+		}
+	}
+	else {
+		if (playerTwoDeck.getTotalCards() < playerTwoDeck.getSize()) {
+			for (iterCard = 0; iterCard < pNumOfCards; iterCard++) {
+
+				playerTwoDeck.addOrganizeCard(gameDeck.getCardDeck(0), true);
+				gameDeck.setCardDeck(*new UnoCard, 0);
+				gameDeck.organizeDeck();
+			}
+		}
+	}
+}
+
+void actionCard(UnoCard pActualCard, int pPositionCard, bool pIsPlayerOneDeck){
+
+	gameDeck.addOrganizeCard(globalCard, true);
+	globalCard = pActualCard;
+	globalCardAux = globalCard;
+
+	if (pIsPlayerOneDeck) {
+		playerOneDeck.setCardDeck(*new UnoCard, pPositionCard);
+		playerOneDeck.organizeDeck();
+	}
+	else {
+		playerTwoDeck.setCardDeck(*new UnoCard, pPositionCard);
+		playerTwoDeck.organizeDeck();
+	}
+
+	switch (pActualCard.getType()) {
+
+	case 's':
+
+		jumpTurn = 2;
+		break;
+
+	case 'r':
+		jumpTurn = 2;
+		break;
+	case '2':
+
+		if (pIsPlayerOneDeck) {
+			pIsPlayerOneDeck = false;
+		}
+		else {
+			pIsPlayerOneDeck = true;
+		}
+		addCardAction(2, pIsPlayerOneDeck);
+		break;
+
+	case '4':
+
+		changeColorAction();
+		if (pIsPlayerOneDeck) {
+			pIsPlayerOneDeck = false;
+		}
+		else {
+			pIsPlayerOneDeck = true;
+		}
+		addCardAction(4, pIsPlayerOneDeck);
+		break;
+
+	case 'c':
+
+		changeColorAction();
+		break;
+
+	case 'n':
+
+		if (pActualCard.getNumber() == 0) {
+			UnoCard auxCard;
+			int iterCard, auxIterCard = playerOneDeck.getSize();
+			for (int iterCard = 0; iterCard < playerOneDeck.getSize(); iterCard++) {
+				auxCard = playerOneDeck.getCardDeck(iterCard);
+				playerOneDeck.setCardDeck(playerTwoDeck.getCardDeck(iterCard), iterCard);
+				playerTwoDeck.setCardDeck(auxCard, iterCard);
+			}
+		}
+		break;
+
+	default:
+		break;
+	}
+}
+
+void takeActionCard(bool pIsPlayerOneDeck) {
+
+	if (isClickingCard(60, 300)) {
+		addCardAction(1, pIsPlayerOneDeck);
+	}
+}
+
+void changeColorAction() {
+
+	const int colorNumber = 4;
+	int iterCard, colorAux;
+	bool isClickingColor = true;
+
+	char colors[colorNumber] = { 'Y', 'G', 'B', 'R' };
+
+	int changeColorXCoord[colorNumber] = {385, 465, 385, 465};
+	int changeColorYCoord[colorNumber] = {240, 240, 360, 360};
+
+	game.draw(changeColorMenu);
+	game.display();
+
+	while (isClickingColor) {
+		for (iterCard = 0; iterCard < colorNumber; iterCard++) {
+			if (isClickingCard(changeColorXCoord[iterCard], changeColorYCoord[iterCard])) {
+				colorAux = iterCard;
+				isClickingColor = false;
+			}
+		}
+		loopRefresh();
+	}
+	globalCardAux.setColor(colors[colorAux]);
 }
 
 void loopRefresh() {
@@ -348,21 +524,21 @@ void loopRefresh() {
 	}
 }
 
-bool mouseDetect(Vector2i mousePos, Vector2f topPos, Vector2f bottomPos) {
+bool mouseDetect(Vector2i pMousePosition, Vector2f pTopPosition, Vector2f pBottomPosition) {
 
 	mousePos = Mouse::getPosition(game);
 
 	bool isInTop = false;
 	bool isInBottom = false;
 
-	if ((mousePos.x > topPos.x) && (mousePos.x < topPos.y)) {
+	if ((pMousePosition.x > pTopPosition.x) && (pMousePosition.x < pTopPosition.y)) {
 		isInTop = true;
 	}
 	else {
 		isInTop = false;
 	}
 
-	if ((mousePos.y > bottomPos.x) && (mousePos.y < bottomPos.y)) {
+	if ((pMousePosition.y > pBottomPosition.x) && (pMousePosition.y < pBottomPosition.y)) {
 		isInBottom = true;
 	}
 	else {
@@ -377,11 +553,11 @@ bool mouseDetect(Vector2i mousePos, Vector2f topPos, Vector2f bottomPos) {
 	}
 }
 
-bool isClickingCard(int xPosCard, int yPosCard) {
+bool isClickingCard(int pXPositionCard, int pYPositionCard) {
 
-	int minX = xPosCard;
-	int maxX = xPosCard + (400 * 0.2);
-	int minY = yPosCard;
+	int minX = pXPositionCard;
+	int maxX = pXPositionCard + (400 * 0.2);
+	int minY = pYPositionCard;
 	int maxY = minY + (600 * 0.2);
 
 	Vector2f top(minX, maxX);
@@ -401,48 +577,49 @@ bool isClickingCard(int xPosCard, int yPosCard) {
 	return false;
 }
 
-bool verifyCard(UnoCard selectedCard) {
 
-	if (selectedCard.getType() == 'v') {
+bool verifyCard(UnoCard pSelectedCard) {
+
+	if (pSelectedCard.getType() == 'v') {
 		return false;
 	}
 
-	switch (selectedCard.getType()) {
+	switch (pSelectedCard.getType()) {
 
 	case 's':
-		if ((turn == 1 && globalCard.getColor() == selectedCard.getColor()) ||
-			(globalCard.getColor() == selectedCard.getColor() && globalCard.getType() != 'r' &&
-			globalCard.getType() != '4')) {
+		if ((turn == 1 && globalCardAux.getColor() == pSelectedCard.getColor()) ||
+			(globalCardAux.getColor() == pSelectedCard.getColor() && globalCardAux.getType() != 'r' &&
+				globalCardAux.getType() != '4')) {
 			return true;
 		}
 		break;
 	case 'r':
-		if ((turn == 1 && globalCard.getColor() == selectedCard.getColor()) || (globalCard.getType() != '4' &&
-			globalCard.getColor() == selectedCard.getColor()) &&
-			globalCard.getType() != 'r') {
+		if ((turn == 1 && globalCardAux.getColor() == pSelectedCard.getColor()) || (globalCardAux.getType() != '4' &&
+			globalCardAux.getColor() == pSelectedCard.getColor()) &&
+			globalCardAux.getType() != 'r') {
 			return true;
 		}
 		break;
 	case '2':
-		if ((turn == 1 && globalCard.getColor() == selectedCard.getColor()) || 
-			(globalCard.getType() != 'r' && globalCard.getType() != '2') &&
-			globalCard.getColor() == selectedCard.getColor()) {
+		if ((turn == 1 && globalCardAux.getColor() == pSelectedCard.getColor()) ||
+			(globalCardAux.getType() != 'r' && globalCardAux.getType() != '2') &&
+			globalCardAux.getColor() == pSelectedCard.getColor()) {
 			return true;
 		}
 		break;
 	case '4':
-		if (globalCard.getType() != 'r') {
+		if (globalCardAux.getType() != 'r') {
 			return true;
 		}
 		break;
 	case 'c':
-		if (turn == 1 || globalCard.getType() != 'r') {
+		if (turn == 1 || globalCardAux.getType() != 'r') {
 			return true;
 		}
 		break;
 	case 'n':
-		if ((selectedCard.getColor() == globalCard.getColor() && globalCard.getType() != 'v' ) ||
-			(turn == 1 && selectedCard.getColor() == globalCard.getColor())) {
+		if ((pSelectedCard.getColor() == globalCardAux.getColor() && globalCardAux.getType() != 'v') ||
+			(turn == 1 && pSelectedCard.getColor() == globalCardAux.getColor())) {
 			return true;
 		}
 		break;
@@ -452,49 +629,20 @@ bool verifyCard(UnoCard selectedCard) {
 	return false;
 }
 
-void actionCard(UnoCard actualCard, int posCard, bool isPlayerOneDeck){
+bool skipTurn() {
 
-	gameDeck.addOrganizeCard(globalCard, false);
-	globalCard = actualCard;
+	bool isButtonPressed = false;
 
-	if (isPlayerOneDeck) {
-		playerOneDeck.setCardDeck(*new UnoCard, posCard);
-		playerOneDeck.organizeDeck();
-	}
-	else {
-		playerTwoDeck.setCardDeck(*new UnoCard, posCard);
-		playerTwoDeck.organizeDeck();
-	}
+	Vector2f top(30, 190), bottom(174, 254);
 
-	switch (actualCard.getType()) {
-
-	case 's':
-		jumpTurn = 2;
-		break;
-	case 'r':
-		turn++;
-		break;
-	case '2':
-
-		break;
-	case '4':
-
-		break;
-	case 'c':
-
-		break;
-	case 'n':
-		if (actualCard.getNumber() == 0) {
-			UnoCard auxCard;
-			int iterCard, auxIterCard = playerOneDeck.getSize();
-			for (int iterCard = 0; iterCard < playerOneDeck.getSize(); iterCard++) {
-				auxCard = playerOneDeck.getCardDeck(iterCard);
-				playerOneDeck.setCardDeck(playerTwoDeck.getCardDeck(iterCard), iterCard);
-				playerTwoDeck.setCardDeck(auxCard, iterCard);
+	if (Mouse::isButtonPressed(Mouse::Left) && mouseDetect(mousePos, top, bottom)) {
+		while (isButtonPressed == false) {
+			if (Mouse::isButtonPressed(Mouse::Left) != true) {
+				isButtonPressed = true;
 			}
+			loopRefresh();
 		}
-		break;
-	default:
-		break;
+		return true;
 	}
+	return false;
 }

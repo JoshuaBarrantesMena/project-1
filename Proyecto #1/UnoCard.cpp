@@ -8,11 +8,11 @@ UnoCard::UnoCard() {
 
 }
 
-UnoCard::UnoCard(int number, char color, char type) {
+UnoCard::UnoCard(int pNumber, char pColor, char pType) {
 
-	this->number = number;
-	this->color = color;
-	this->type = type;
+	this->number = pNumber;
+	this->color = pColor;
+	this->type = pType;
 }
 
 UnoCard::~UnoCard() {
@@ -34,12 +34,9 @@ char UnoCard::getType() {
 	return type;
 }
 
-void UnoCard::print() {
+void UnoCard::setColor(char pColor) {
 
-	cout << "numero [ " << number << " ]";
-	cout << "color [ " << color << " ]";
-	cout << "tipo [ " << type << " ]";
-
+	color = pColor;
 }
 
 UnoCard& UnoCard::operator=(UnoCard card) {

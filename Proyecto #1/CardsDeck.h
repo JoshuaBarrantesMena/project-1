@@ -12,13 +12,15 @@ public:
 	CardsDeck();
 	CardsDeck(int);
 	~CardsDeck();
+
 	void fillDeck();
 	void deckShufle();
 	void setCardDeck(UnoCard, int);
 	void organizeDeck();
 	void addOrganizeCard(UnoCard, bool);
-	void print(); //eliminable
+
 	int getTotalCards();
 	int getSize();
+
 	UnoCard getCardDeck(int);
 };
